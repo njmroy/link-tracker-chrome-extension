@@ -1,52 +1,58 @@
 let myLeads = []
-
 const inputEl = document.getElementById("input-el")
 const inputBtn = document.getElementById("input-btn")
 const ulEl = document.getElementById("ul-el")
+const deleteBtn = document.getElementById("delete-btn")
+const leadsFromLocalStorage = JSON.parse( localStorage.getItem("myLeads") )
+const tabBtn = document.getElementById("tab-btn")
 
-localStorage.setItem("myLeads", "www.example.com")
+if (leadsFromLocalStorage) {
+    myLeads = leadsFromLocalStorage
+    render(myLeads)
+}
 
-inputBtn.addEventListener("click", function() {
-    //add input field value to myLeads array
-    myLeads.push(inputEl.value);
-    //Clear input field
-    inputEl.value = "";
-    //save leads to localStorage
-    //convert to JSON string format
-    myLeads = JSON.stringify(myLeads);
-    //add to local storage
-    localStorage.setItem(myLeads);
-    //log item in console
-    console.log(localStorage.getItem("myLeads"));
+const tabs = [
+    {url: "https://www.linkedin.com/in/per-harald-borgen/"}
+]
+
+
+tabBtn.addEventListener("click", function(){
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        // since only one tab should be active and in the current window at once
+        // the return variable should only have one entry
+        let activeTab = tabs[0]
+        let activeTabId = activeTab.id // or do whatever you need
+    })
     
-    renderLeads();
+    myLeads.push(tabs[0].url)
+    localStorage.setItem("myLeads", JSON.stringify(myLeads) )
+    render(myLeads)
     
 })
 
-function renderLeads() { 
-    let listItems = "";
-    for (let i=0; i<myLeads.length;i++) {
-        //ulEl.innerHTML += `<li> ${myLeads[i]} </li>`;
+function render(leads) {
+    let listItems = ""
+    for (let i = 0; i < leads.length; i++) {
         listItems += `
-        <li>
-            <a target="_blank" href="${myLeads[i]}"> ${myLeads[i]} </a> 
-        </li>
-        `;
-        //Same method as above but split up. 
-        //Create new li element 
-        // makes <li></li>
-        //const li = document.createElement("li");
-
-        //Add leads as text content of newly made list element
-        //makes <li> myLeads[i] </li>
-        //li.textContent = myLeads[i];
-ß
-        //Add list item to unordered list element 
-        //Connects <li> myLeads[i] </li> to unordered list element
-        //ulEl.append(li);
-
+            <li>
+                <a target='_blank' href='${leads[i]}'>
+                    ${leads[i]}
+                </a>
+            </li>
+        `
     }
-    //DOM manipulation has a cost and should be done outside of loops. 
-    ulEl.innerHTML = listItems;
-
+    ulEl.innerHTML = listItems
 }
+
+deleteBtn.addEventListener("dblclick", function() {
+    localStorage.clear()
+    myLeads = []
+    render(myLeads)
+})
+
+inputBtn.addEventListener("click", function() {
+    myLeads.push(inputEl.value)
+    inputEl.value = ""
+    localStorage.setItem("myLeads", JSON.stringify(myLeads) )
+    render(myLeads)
+})
